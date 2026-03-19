@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+venv/
+.omc/
+hook_debug.log
+*.log
