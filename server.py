@@ -24,6 +24,7 @@ _pending_permissions: dict[str, dict] = {}
 _perm_lock = threading.Lock()
 
 
+
 def set_on_update(callback):
     global _on_update_callback
     _on_update_callback = callback
@@ -157,6 +158,18 @@ def hook():
     # PermissionRequest: 대시보드에서 허용/거부할 때까지 대기
     if hook_event == "PermissionRequest":
         request_id = permission_request_id
+
+        # 오토모드: 즉시 허용
+        if store.is_auto_mode(session_id):
+            store.update(session_id, project, project_name, "working", "")
+            _notify_update()
+            return jsonify({
+                "hookSpecificOutput": {
+                    "hookEventName": "PermissionRequest",
+                    "decision": {"behavior": "allow"}
+                }
+            })
+
         evt = threading.Event()
         with _perm_lock:
             _pending_permissions[request_id] = {"event": evt, "decision": "allow"}
@@ -206,6 +219,14 @@ def permission_respond(request_id):
             pending["event"].set()
             return jsonify({"ok": True})
     return jsonify({"error": "not found"}), 404
+
+
+@app.route("/session/<session_id>/auto", methods=["POST"])
+def toggle_auto(session_id):
+    """세션별 오토모드 토글."""
+    result = store.toggle_auto_mode(session_id)
+    _notify_update()
+    return jsonify({"auto_mode": result})
 
 
 @app.route("/permissions/pending", methods=["GET"])

@@ -427,6 +427,7 @@ class MainWindow(QWidget):
             card = SessionCard(session)
             card.dismissed.connect(self._on_dismiss)
             card.permission_responded.connect(lambda _: self._refresh())
+            card.auto_toggled.connect(lambda _: self._refresh())
             self._card_layout.insertWidget(self._card_layout.count() - 1, card)
 
         # 트레이 깜빡임

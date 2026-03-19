@@ -40,6 +40,7 @@ class SessionCard(QFrame):
 
     dismissed = pyqtSignal(str)
     permission_responded = pyqtSignal(str)
+    auto_toggled = pyqtSignal(str)
 
     def __init__(self, session: dict, parent=None):
         super().__init__(parent)
@@ -96,6 +97,21 @@ class SessionCard(QFrame):
             padding: 2px 6px;
         """)
 
+        # 오토모드 토글
+        is_auto = session.get("auto_mode", False)
+        auto_btn = QLabel("A")
+        auto_btn.setFixedSize(20, 20)
+        auto_btn.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        auto_btn.setFont(QFont("Consolas", 9, QFont.Weight.Bold))
+        if is_auto:
+            auto_btn.setStyleSheet("color: #22c55e; background: #22c55e20; border-radius: 4px;")
+            auto_btn.setToolTip("오토모드 ON")
+        else:
+            auto_btn.setStyleSheet("color: #585b70; background: transparent; border-radius: 4px;")
+            auto_btn.setToolTip("오토모드 OFF")
+        auto_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        auto_btn.mousePressEvent = lambda e: self._on_toggle_auto()
+
         # 닫기 버튼 (✕)
         close_btn = QLabel("✕")
         close_btn.setFixedSize(18, 18)
@@ -109,6 +125,7 @@ class SessionCard(QFrame):
         top_row.addWidget(name_label)
         top_row.addStretch()
         top_row.addWidget(tag)
+        top_row.addWidget(auto_btn)
         top_row.addWidget(close_btn)
         main_layout.addLayout(top_row)
 
@@ -207,6 +224,20 @@ class SessionCard(QFrame):
         except Exception:
             pass
         self.permission_responded.emit(self.session_id)
+
+    def _on_toggle_auto(self):
+        """세션별 오토모드 토글."""
+        try:
+            req = urllib.request.Request(
+                f"http://localhost:39393/session/{self.session_id}/auto",
+                data=b"{}",
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            urllib.request.urlopen(req, timeout=5)
+        except Exception:
+            pass
+        self.auto_toggled.emit(self.session_id)
 
     def _on_focus(self):
         """VS Code로 해당 프로젝트 열기 + 창 1200x800 중앙 배치."""

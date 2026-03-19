@@ -9,6 +9,21 @@ class SessionStore:
         self._sessions: dict[str, dict] = {}
         self._lock = threading.Lock()
 
+    def toggle_auto_mode(self, session_id: str) -> bool:
+        """세션별 오토모드 토글. 현재 상태 반환."""
+        with self._lock:
+            session = self._sessions.get(session_id)
+            if session:
+                session["auto_mode"] = not session["auto_mode"]
+                return session["auto_mode"]
+            return False
+
+    def is_auto_mode(self, session_id: str) -> bool:
+        """세션의 오토모드 상태 확인."""
+        with self._lock:
+            session = self._sessions.get(session_id)
+            return session.get("auto_mode", False) if session else False
+
     def add_activity(self, session_id: str, tool_name: str, summary: str):
         """도구 사용 내역 추가 (최대 10개 유지)."""
         with self._lock:
@@ -35,11 +50,14 @@ class SessionStore:
                 "dismissed": False,
                 "permission_request_id": "",
                 "activities": [],
+                "auto_mode": False,
             })
             session["project"] = project
             session["project_name"] = project_name
             session["status"] = status
-            if message:
+            if status == "working":
+                session["message"] = ""
+            elif message:
                 session["message"] = message
             session["permission_request_id"] = permission_request_id
             session["updated_at"] = datetime.now().isoformat(timespec="seconds")
