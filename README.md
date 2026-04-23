@@ -367,7 +367,7 @@ Windows `SHAppBarMessage` API를 사용하여 화면 좌측에 고정:
 pip install pyinstaller
 
 # .exe 빌드
-pyinstaller --onefile --windowed --icon=icon.ico main.py
+pyinstaller --onefile --windowed --name "ClaudeCodeDashboard" main.py
 ```
 
 빌드 결과는 `dist/main.exe`에 생성됩니다.

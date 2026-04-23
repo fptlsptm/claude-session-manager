@@ -4,3 +4,8 @@ venv/
 .omc/
 hook_debug.log
 *.log
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
